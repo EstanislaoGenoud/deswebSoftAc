@@ -1,0 +1,471 @@
+{
+	"info": {
+		"_postman_id": "8a329d91-4c12-429a-bc29-446756bf0281",
+		"name": "Sistema de Gestión Académico - API v1",
+		"description": "Colección completa de pruebas para la API del Sistema de Gestión Académico. Contempla seguridad con JWT, validaciones RegEx, delegación de identidad, propiedad de datos (403 Forbidden), paginación optimizada, búsqueda dinámica con LIKE y protección de integridad referencial.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01 - Autenticación y Registro",
+			"item": [
+				{
+					"name": "1.1 Registro - Contraseña Débil (Bloqueo 400 RegEx)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Usuario\",\n    \"apellido\": \"Prueba\",\n    \"email\": \"test.debil@instituto.edu.ar\",\n    \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/usuarios",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"usuarios"
+							]
+						},
+						"description": "Prueba de rechazo inmediato por validación RegEx en backend. Debe retornar 400 Bad Request."
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Registro - Contraseña Robusta (201 Created)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nombre\": \"Estanislao\",\n    \"apellido\": \"Genoud\",\n    \"email\": \"estanislao.genoud@instituto.edu.ar\",\n    \"password\": \"ClaveSegura2026!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/usuarios",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"usuarios"
+							]
+						},
+						"description": "Registro exitoso cumpliendo con las expresiones regulares de complejidad y formato de email."
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Login - Obtener Token JWT",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();",
+									"if (responseJson.token) {",
+									"    pm.collectionVariables.set('token', responseJson.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@instituto.edu.ar\",\n    \"password\": \"Admin123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/usuarios/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"usuarios",
+								"login"
+							]
+						},
+						"description": "Autenticación de credenciales y generación del token JWT en el backend."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "02 - Identidad y Endpoint de Perfil Seguro",
+			"item": [
+				{
+					"name": "2.1 GET /perfil - Ver Perfil Propio (Confianza en JWT)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/perfil",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"perfil"
+							]
+						},
+						"description": "Consulta del perfil sin parámetros de ID en la URL. El servidor extrae la identidad exclusivamente de req.usuario.id."
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 GET /perfil - Sin Token (Bloqueo 401 Unauthorized)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/perfil",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"perfil"
+							]
+						},
+						"description": "Demuestra la denegación de acceso cuando no se provee token."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "03 - Publicaciones: Delegación de Identidad",
+			"item": [
+				{
+					"name": "3.1 Crear Publicación (ID inyectado desde Token)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"titulo\": \"Investigación sobre Arquitectura MVC y JWT\",\n    \"contenido\": \"Este artículo detalla la implementación de patrones seguros en Express y MySQL.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/publicaciones",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"publicaciones"
+							]
+						},
+						"description": "El cliente solo envía título y contenido. El backend asigna autor_id desde req.usuario.id."
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Intento de Suplantación de autor_id (Bloqueado por Backend)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"titulo\": \"Publicación con autor falseado\",\n    \"contenido\": \"Intento de forzar autor_id ajeno en el cuerpo JSON.\",\n    \"autor_id\": 999\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/publicaciones",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"publicaciones"
+							]
+						},
+						"description": "El middleware descarta el autor_id inyectado y el backend persiste con el ID real del token."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "04 - Control de Propiedad de Datos",
+			"item": [
+				{
+					"name": "4.1 Modificar Publicación Propia (200 OK)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"titulo\": \"Título Actualizado por el Creador\",\n    \"contenido\": \"Contenido corregido y ampliado por su dueño legítimo.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/publicaciones/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"publicaciones",
+								"1"
+							]
+						},
+						"description": "El usuario dueño de la publicación (ID 1) actualiza su recurso satisfactoriamente."
+					},
+					"response": []
+				},
+				{
+					"name": "4.2 Modificar Publicación Ajena (Bloqueo 403 Forbidden)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"titulo\": \"Intento de Modificación Ilegítima\",\n    \"contenido\": \"Modificando publicación del usuario 2.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/publicaciones/3",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"publicaciones",
+								"3"
+							]
+						},
+						"description": "Demuestra la verificación en base de datos previa a la sentencia UPDATE. Retorna 403 Forbidden."
+					},
+					"response": []
+				},
+				{
+					"name": "4.3 Eliminar Publicación Ajena (Bloqueo 403 Forbidden)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/publicaciones/3",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"publicaciones",
+								"3"
+							]
+						},
+						"description": "Demuestra la verificación en base de datos previa a la sentencia DELETE. Retorna 403 Forbidden."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "05 - Paginación y Búsqueda Dinámica",
+			"item": [
+				{
+					"name": "5.1 Listar Publicaciones Paginadas (LIMIT & OFFSET)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/publicaciones?page=1&limit=2",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"publicaciones"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "2"
+								}
+							]
+						},
+						"description": "Retorna datos paginados evitando SELECT * masivos, con metadatos de total y páginas."
+					},
+					"response": []
+				},
+				{
+					"name": "5.2 Búsqueda Dinámica con LIKE (?search=Academico)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/publicaciones?search=Academico",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"publicaciones"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "Academico"
+								}
+							]
+						},
+						"description": "Filtra publicaciones dinámicamente aplicando LIKE '%termino%' parametrizado de forma segura."
+					},
+					"response": []
+				},
+				{
+					"name": "5.3 Búsqueda y Paginación Combinadas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/publicaciones?search=Guia&page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"publicaciones"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "Guia"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Combina filtrado dinámico con paginación."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "06 - Integridad Referencial",
+			"item": [
+				{
+					"name": "6.1 Intentar Eliminar Usuario con Publicaciones (Bloqueo 409 Conflict)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/usuarios/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"usuarios",
+								"1"
+							]
+						},
+						"description": "Protege la integridad referencial. Si el usuario posee publicaciones, rechaza la eliminación con 409 Conflict."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

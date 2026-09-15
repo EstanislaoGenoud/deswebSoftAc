@@ -47,6 +47,17 @@ JWT_SECRET=jwt_secret_key
 ```
 
 ### 4. Instalación y Ejecución
+
+#### Opción A: Con Docker (Recomendado)
+```bash
+docker compose up --build
+```
+Esto iniciará automáticamente:
+- **MySQL 8.0** en el puerto `3306` (con el esquema inicial cargado)
+- **phpMyAdmin** en `http://localhost:8080`
+- **Backend API** en `http://localhost:3000`
+
+#### Opción B: Ejecución Local
 ```bash
 cd backend
 npm install

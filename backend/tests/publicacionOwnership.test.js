@@ -11,6 +11,10 @@ jest.unstable_mockModule('../src/models/publicacionModel.js', () => ({
 	countPublicacionesByAutor: jest.fn()
 }));
 
+jest.unstable_mockModule('../src/models/cursoModel.js', () => ({
+	countCursosByDocente: jest.fn().mockResolvedValue(0)
+}));
+
 jest.unstable_mockModule('../src/models/usuarioModel.js', () => ({
 	createUsuario: jest.fn(),
 	getAllUsuarios: jest.fn(),
@@ -21,6 +25,7 @@ jest.unstable_mockModule('../src/models/usuarioModel.js', () => ({
 	updateEmail: jest.fn(),
 	deleteUsuario: jest.fn()
 }));
+
 
 const {
 	createPublicacionController,

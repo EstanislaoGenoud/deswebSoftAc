@@ -43,4 +43,34 @@ const verifyToken = (req, res, next) => {
 	}
 };
 
-export { verifyToken };
+export const optionalVerifyToken = (req, res, next) => {
+	try {
+		const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+		if (!authHeader) {
+			return next();
+		}
+		let token = authHeader;
+		if (authHeader.startsWith('Bearer ')) {
+			token = authHeader.slice(7).trim();
+		}
+		if (!token) {
+			return next();
+		}
+		const secret = process.env.JWT_SECRET;
+		if (secret) {
+			try {
+				const decodedToken = jwt.verify(token, secret);
+				req.usuario = decodedToken;
+				req.userData = decodedToken;
+				req.user = decodedToken;
+			} catch {
+				// Silently continue without authenticated user if optional token is expired/invalid
+			}
+		}
+		next();
+	} catch (error) {
+		next();
+	}
+};
+
+export { verifyToken };

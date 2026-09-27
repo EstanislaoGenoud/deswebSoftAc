@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>SoftAC | Visualización y Gestión de Cursos</title>
+	<meta name="description" content="Sistema de Gestión Académico SoftAC - Módulo de Visualización y Gestión de Cursos para Docentes (HU-04).">
+	
+	<!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+	
+	<!-- Font Awesome Icons -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	
+	<!-- Custom CSS -->
+	<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+	<div class="app-layout">
+		<!-- Top Navbar -->
+		<header class="navbar" id="main-header">
+			<div class="navbar-container">
+				<!-- Brand Logo -->
+				<div class="navbar-brand">
+					<div class="brand-icon">
+						<i class="fa-solid fa-graduation-cap"></i>
+					</div>
+					<div class="brand-text">
+						<span class="brand-name">Soft<strong>AC</strong></span>
+						<span class="brand-tag">Gestión Académica</span>
+					</div>
+				</div>
+
+				<!-- Navigation Tabs -->
+				<nav class="nav-tabs" aria-label="Navegación principal">
+					<button class="nav-tab active" id="tab-mis-cursos" data-view="mis-cursos">
+						<i class="fa-solid fa-chalkboard-user"></i>
+						<span>Mis Cursos Asignados</span>
+						<span class="badge-count" id="count-mis-cursos">0</span>
+					</button>
+					<button class="nav-tab" id="tab-todos-cursos" data-view="todos">
+						<i class="fa-solid fa-book-open"></i>
+						<span>Catálogo Completo</span>
+					</button>
+				</nav>
+
+				<!-- User Actions & Teacher Switcher -->
+				<div class="navbar-actions">
+					<!-- Docente Context Selector (Simulator for testing & evaluation) -->
+					<div class="docente-selector-wrapper" title="Cambiar docente autenticado para simular permisos y estado vacío">
+						<i class="fa-solid fa-user-gear selector-icon"></i>
+						<select id="docente-selector" class="docente-select" aria-label="Seleccionar docente simulado">
+							<option value="1">Docente: Admin Sistema (ID 1 - 3 Cursos)</option>
+							<option value="2">Docente: Juan Perez (ID 2 - 1 Curso)</option>
+							<option value="3">Docente: María Gómez (ID 3 - 0 Cursos / Estado Vacío)</option>
+						</select>
+					</div>
+
+					<!-- Theme Switcher -->
+					<button class="icon-btn theme-toggle" id="theme-toggle" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">
+						<i class="fa-solid fa-moon"></i>
+					</button>
+
+					<!-- User Profile Preview -->
+					<div class="user-profile-badge" id="user-profile-badge">
+						<div class="avatar" id="user-avatar">AS</div>
+						<div class="user-info">
+							<span class="user-name" id="user-name">Admin Sistema</span>
+							<span class="user-role" id="user-role">Docente Titular</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<!-- Main Content Area -->
+		<main class="main-content">
+			<!-- Hero & Quick Stats Banner -->
+			<section class="hero-banner">
+				<div class="hero-content">
+					<div class="hero-text">
+						<div class="pill-badge">
+							<i class="fa-solid fa-circle-check"></i>
+							<span>Ciclo Lectivo 2026 • 1° Cuatrimestre</span>
+						</div>
+						<h1 class="hero-title" id="page-title">Mis Cursos Asignados</h1>
+						<p class="hero-subtitle">
+							Consulta los horarios, comisiones, aulas asignadas y cupos de tus asignaturas activas en el Sistema Académico SoftAC.
+						</p>
+					</div>
+
+					<!-- Quick Stats Cards -->
+					<div class="stats-grid">
+						<div class="stat-card">
+							<div class="stat-icon icon-primary">
+								<i class="fa-solid fa-book-bookmark"></i>
+							</div>
+							<div class="stat-details">
+								<span class="stat-value" id="stat-total-cursos">0</span>
+								<span class="stat-label">Cursos Activos</span>
+							</div>
+						</div>
+
+						<div class="stat-card">
+							<div class="stat-icon icon-success">
+								<i class="fa-solid fa-users"></i>
+							</div>
+							<div class="stat-details">
+								<span class="stat-value" id="stat-total-cupos">0</span>
+								<span class="stat-label">Capacidad Alumnos</span>
+							</div>
+						</div>
+
+						<div class="stat-card">
+							<div class="stat-icon icon-warning">
+								<i class="fa-solid fa-door-open"></i>
+							</div>
+							<div class="stat-details">
+								<span class="stat-value" id="stat-total-comisiones">0</span>
+								<span class="stat-label">Comisiones</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Control Bar: Search, Filters, View Modes & Add Course -->
+			<section class="control-bar-section">
+				<div class="control-bar">
+					<!-- Search Box with debouncing -->
+					<div class="search-box">
+						<i class="fa-solid fa-magnifying-glass search-icon"></i>
+						<input 
+							type="text" 
+							id="search-input" 
+							class="search-input" 
+							placeholder="Buscar por código, nombre de materia, comisión o aula..."
+							autocomplete="off"
+							aria-label="Buscar cursos"
+						>
+						<button class="clear-search-btn" id="clear-search" title="Limpiar búsqueda" style="display: none;">
+							<i class="fa-solid fa-xmark"></i>
+						</button>
+					</div>
+
+					<!-- Period / Semester / School Filter -->
+					<div class="filter-group">
+						<div class="custom-select-wrapper">
+							<i class="fa-solid fa-graduation-cap select-prefix-icon"></i>
+							<select id="escuela-filter" class="filter-select" aria-label="Filtrar por escuela">
+								<option value="">Todas las Escuelas</option>
+								<option value="1">Escuela de Informática y Tecnología</option>
+								<option value="2">Escuela de Ingeniería de Software</option>
+							</select>
+						</div>
+
+						<div class="custom-select-wrapper">
+							<i class="fa-solid fa-calendar-days select-prefix-icon"></i>
+							<select id="periodo-filter" class="filter-select" aria-label="Filtrar por periodo">
+								<option value="">Todos los Períodos</option>
+								<option value="2026 - 1° Cuatrimestre">2026 - 1° Cuatrimestre</option>
+								<option value="2026 - 2° Cuatrimestre">2026 - 2° Cuatrimestre</option>
+							</select>
+						</div>
+
+						<div class="custom-select-wrapper">
+							<i class="fa-solid fa-layer-group select-prefix-icon"></i>
+							<select id="comision-filter" class="filter-select" aria-label="Filtrar por comisión">
+								<option value="">Todas las Comisiones</option>
+								<option value="Comisión A">Comisión A</option>
+								<option value="Comisión B">Comisión B</option>
+								<option value="Comisión C">Comisión C</option>
+							</select>
+						</div>
+					</div>
+
+
+					<!-- Layout Mode & Action Buttons -->
+					<div class="action-group">
+						<div class="view-toggle" role="group" aria-label="Modo de vista">
+							<button class="view-btn active" id="view-grid" title="Vista en Cuadrícula" aria-label="Vista en Cuadrícula">
+								<i class="fa-solid fa-grip"></i>
+							</button>
+							<button class="view-btn" id="view-list" title="Vista en Lista / Tabla" aria-label="Vista en Lista">
+								<i class="fa-solid fa-list"></i>
+							</button>
+						</div>
+
+						<button class="btn btn-primary" id="btn-nuevo-curso">
+							<i class="fa-solid fa-plus"></i>
+							<span>Nuevo Curso</span>
+						</button>
+					</div>
+				</div>
+			</section>
+
+			<!-- Courses Display Section -->
+			<section class="courses-section" id="courses-container-wrapper">
+				<!-- Loading State Spinner -->
+				<div class="loading-state" id="loading-spinner" style="display: none;">
+					<div class="spinner"></div>
+					<p>Cargando cursos desde el servidor...</p>
+				</div>
+
+				<!-- Grid View Container -->
+				<div class="courses-grid" id="courses-grid">
+					<!-- Dynamic Course Cards will be rendered here -->
+				</div>
+
+				<!-- Table View Container -->
+				<div class="courses-table-wrapper" id="courses-table-wrapper" style="display: none;">
+					<table class="courses-table">
+						<thead>
+							<tr>
+								<th>Código</th>
+								<th>Asignatura</th>
+								<th>Comisión</th>
+								<th>Periodo</th>
+								<th>Aula</th>
+								<th>Horario</th>
+								<th>Cupos</th>
+								<th>Docente</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody id="courses-table-body">
+							<!-- Dynamic table rows -->
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Empty State Component (#83 HU-04) -->
+				<div class="empty-state" id="empty-state" style="display: none;">
+					<div class="empty-icon-wrapper">
+						<div class="empty-icon-circle">
+							<i class="fa-solid fa-folder-open" id="empty-icon"></i>
+						</div>
+					</div>
+					<h3 class="empty-title" id="empty-title">No tienes cursos asignados</h3>
+					<p class="empty-description" id="empty-description">
+						Actualmente no registras materias ni comisiones a tu cargo en este período académico. Puedes consultar el catálogo completo o solicitar la asignación en secretaría.
+					</p>
+					<div class="empty-actions" id="empty-actions">
+						<button class="btn btn-primary" id="empty-btn-action">
+							<i class="fa-solid fa-arrows-rotate"></i>
+							<span>Recargar Cursos</span>
+						</button>
+						<button class="btn btn-secondary" id="empty-btn-explore">
+							<i class="fa-solid fa-book-open"></i>
+							<span>Ver Catálogo General</span>
+						</button>
+					</div>
+				</div>
+
+				<!-- Pagination Bar -->
+				<div class="pagination-bar" id="pagination-bar" style="display: none;">
+					<div class="pagination-info" id="pagination-info">
+						Mostrando <strong id="pag-start">1</strong> - <strong id="pag-end">10</strong> de <strong id="pag-total">0</strong> cursos
+					</div>
+					<div class="pagination-controls">
+						<button class="pagination-btn" id="pag-prev" disabled>
+							<i class="fa-solid fa-chevron-left"></i>
+							<span>Anterior</span>
+						</button>
+						<div class="pagination-pages" id="pagination-pages">
+							<!-- Page numbers -->
+						</div>
+						<button class="pagination-btn" id="pag-next" disabled>
+							<span>Siguiente</span>
+							<i class="fa-solid fa-chevron-right"></i>
+						</button>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<!-- Footer -->
+		<footer class="app-footer">
+			<div class="footer-content">
+				<p><strong>SoftAC</strong> • Sistema de Gestión Académico • Desarrollo de Sistemas Web 2026</p>
+				<p class="footer-meta">API REST Express + MySQL • Patrón MVC • HU-04 Visualizar Cursos</p>
+			</div>
+		</footer>
+	</div>
+
+	<!-- Modal: Detalle de Curso (HU-06 #96, #97, #99, #101, #104) -->
+	<div class="modal-overlay" id="modal-detalle-overlay" style="display: none;">
+		<div class="modal-card modal-lg">
+			<div class="modal-header">
+				<div class="modal-title-group">
+					<div class="modal-badges-row">
+						<span class="modal-badge" id="modal-codigo">DSW-301</span>
+						<span class="comision-pill" id="modal-escuela-badge"><i class="fa-solid fa-graduation-cap"></i> Escuela de Informática</span>
+					</div>
+					<h2 class="modal-title" id="modal-nombre">Desarrollo de Sistemas Web</h2>
+				</div>
+				<button class="modal-close-btn" id="btn-close-detalle" aria-label="Cerrar ventana">
+					<i class="fa-solid fa-xmark"></i>
+				</button>
+			</div>
+			<div class="modal-body">
+				<!-- Grid de Información de Cursada -->
+				<div class="modal-grid">
+					<div class="modal-info-item">
+						<span class="info-label"><i class="fa-solid fa-chalkboard-user"></i> Docente Titular</span>
+						<span class="info-value" id="modal-docente">Admin Sistema (admin@instituto.edu.ar)</span>
+					</div>
+					<div class="modal-info-item">
+						<span class="info-label"><i class="fa-solid fa-layer-group"></i> Comisión</span>
+						<span class="info-value" id="modal-comision">Comisión A</span>
+					</div>
+					<div class="modal-info-item">
+						<span class="info-label"><i class="fa-solid fa-calendar-days"></i> Período</span>
+						<span class="info-value" id="modal-periodo">2026 - 1° Cuatrimestre</span>
+					</div>
+					<div class="modal-info-item">
+						<span class="info-label"><i class="fa-solid fa-door-open"></i> Aula / Espacio</span>
+						<span class="info-value" id="modal-aula">Lab 3 - Informática</span>
+					</div>
+					<div class="modal-info-item">
+						<span class="info-label"><i class="fa-solid fa-clock"></i> Horario de Cursada</span>
+						<span class="info-value" id="modal-horario">Lunes y Miércoles 18:30 - 21:30</span>
+					</div>
+					<div class="modal-info-item">
+						<span class="info-label"><i class="fa-solid fa-users"></i> Cantidad de Alumnos</span>
+						<span class="info-value" id="modal-cupo">0 / 35 Estudiantes</span>
+					</div>
+				</div>
+
+				<!-- Sección: Escuela Asociada (#99) -->
+				<div class="modal-section" id="modal-escuela-section" style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+					<h4 class="section-title" style="color: var(--accent-primary); margin-bottom: 0.5rem;">
+						<i class="fa-solid fa-building-columns"></i> Escuela Asociada
+					</h4>
+					<div class="modal-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+						<div>
+							<span class="info-label">Nombre Institucional:</span>
+							<span class="info-value" id="modal-escuela-nombre" style="font-weight: 600;">Escuela de Informática y Tecnología</span>
+						</div>
+						<div>
+							<span class="info-label">Director de Escuela:</span>
+							<span class="info-value" id="modal-escuela-director">Dr. Roberto Gómez</span>
+						</div>
+						<div>
+							<span class="info-label">Ubicación / Pabellón:</span>
+							<span class="info-value" id="modal-escuela-ubicacion">Campus Central</span>
+						</div>
+						<div>
+							<span class="info-label">Contacto Secretaría:</span>
+							<span class="info-value" id="modal-escuela-contacto">informatica@instituto.edu.ar</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Sección: Capacidad y Ocupación (#101) -->
+				<div class="modal-section" style="margin-top: 1rem;">
+					<div class="capacity-wrapper" style="padding: 1rem; background: var(--bg-surface-2); border-radius: 12px; border: 1px solid var(--border-color);">
+						<div class="capacity-labels" style="margin-bottom: 0.5rem;">
+							<span><i class="fa-solid fa-chart-pie"></i> Estado de Ocupación de Cupos</span>
+							<span id="modal-capacidad-texto"><strong>0 inscriptos</strong> • 35 cupos libres (0%)</span>
+						</div>
+						<div class="capacity-bar" style="height: 10px;">
+							<div class="capacity-progress" id="modal-capacidad-progress" style="width: 0%;"></div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Sección: Descripción del Programa -->
+				<div class="modal-section" style="margin-top: 1rem;">
+					<h4 class="section-title"><i class="fa-solid fa-align-left"></i> Descripción del Programa</h4>
+					<p class="modal-description-text" id="modal-descripcion">
+						Arquitectura cliente-servidor, APIs REST, autenticación JWT, Express y MySQL.
+					</p>
+				</div>
+
+				<!-- Sección: Nómina de Alumnos y Permisos (#101, #104) -->
+				<div class="modal-section" id="modal-alumnos-section" style="margin-top: 1.25rem;">
+					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+						<h4 class="section-title" style="margin: 0;"><i class="fa-solid fa-user-graduate"></i> Alumnos Inscriptos</h4>
+						<button class="btn btn-secondary btn-sm" id="btn-cargar-alumnos">
+							<i class="fa-solid fa-list-check"></i>
+							<span>Ver Lista de Inscriptos</span>
+						</button>
+					</div>
+					<div id="modal-alumnos-container" style="display: none; padding: 0.75rem; border-radius: 8px; background: var(--bg-surface-2); border: 1px solid var(--border-color);">
+						<!-- Alumnos table / permission warning will render here -->
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-secondary" id="btn-cerrar-modal">Cerrar</button>
+				<button class="btn btn-primary" id="btn-copiar-codigo">
+					<i class="fa-regular fa-copy"></i>
+					<span>Copiar Código</span>
+				</button>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- Modal: Crear Nuevo Curso -->
+	<div class="modal-overlay" id="modal-crear-overlay" style="display: none;">
+		<div class="modal-card">
+			<div class="modal-header">
+				<div class="modal-title-group">
+					<h2 class="modal-title">Registrar Nuevo Curso</h2>
+					<p class="modal-subtitle">Asignatura vinculada al docente: <strong id="crear-modal-docente" style="color: var(--accent-primary);">Admin Sistema</strong></p>
+				</div>
+				<button class="modal-close-btn" id="btn-close-crear" aria-label="Cerrar ventana">
+					<i class="fa-solid fa-xmark"></i>
+				</button>
+			</div>
+
+			<form id="form-crear-curso">
+				<div class="modal-body">
+					<div class="form-grid">
+						<div class="form-group">
+							<label for="form-codigo">Código de Materia *</label>
+							<input type="text" id="form-codigo" name="codigo" required placeholder="Ej: DSW-302" class="form-input">
+						</div>
+						<div class="form-group">
+							<label for="form-nombre">Nombre de la Asignatura *</label>
+							<input type="text" id="form-nombre" name="nombre" required placeholder="Ej: Laboratorio de Redes" class="form-input">
+						</div>
+						<div class="form-group">
+							<label for="form-comision">Comisión</label>
+							<input type="text" id="form-comision" name="comision" value="Comisión A" class="form-input">
+						</div>
+						<div class="form-group">
+							<label for="form-periodo">Período Académico</label>
+							<input type="text" id="form-periodo" name="periodo" value="2026 - 1° Cuatrimestre" class="form-input">
+						</div>
+						<div class="form-group">
+							<label for="form-aula">Aula / Laboratorio</label>
+							<input type="text" id="form-aula" name="aula" value="Lab 2" class="form-input">
+						</div>
+						<div class="form-group">
+							<label for="form-horario">Horarios de Cursada</label>
+							<input type="text" id="form-horario" name="horario" value="Martes 18:00 - 22:00" class="form-input">
+						</div>
+						<div class="form-group">
+							<label for="form-escuela">Escuela / Departamento Académico *</label>
+							<select id="form-escuela" name="escuela_id" class="form-input" required>
+								<option value="1">Escuela de Informática y Tecnología</option>
+								<option value="2">Escuela de Ingeniería de Software</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="form-cupo">Cupo Máximo</label>
+							<input type="number" id="form-cupo" name="cupo_maximo" value="35" min="1" max="500" class="form-input">
+						</div>
+					</div>
+					<div class="form-group" style="margin-top: 1rem;">
+						<label for="form-descripcion">Descripción / Contenidos Mínimos</label>
+						<textarea id="form-descripcion" name="descripcion" rows="3" class="form-textarea" placeholder="Breve resumen del programa del curso..."></textarea>
+					</div>
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" id="btn-cancelar-crear">Cancelar</button>
+					<button type="submit" class="btn btn-primary" id="btn-submit-curso">
+						<i class="fa-solid fa-check"></i>
+						<span>Guardar Curso</span>
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- Modal: Perfil del Alumno (HU-09 #139, #140, #145, #146, #149) -->
+	<div class="modal-overlay" id="modal-alumno-overlay" style="display: none;">
+		<div class="modal-card modal-lg">
+			<div class="modal-header">
+				<div class="modal-title-group">
+					<div class="modal-badges-row">
+						<span class="modal-badge" id="modal-alumno-legajo">ALU-2026-0004</span>
+						<span class="comision-pill" id="modal-alumno-estado"><i class="fa-solid fa-circle-check"></i> Matrícula Activa</span>
+						<span class="badge badge-success" id="modal-alumno-desempeno" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; background: rgba(16, 185, 129, 0.2); color: #10b981; font-weight: 600;">Excelente</span>
+					</div>
+					<h2 class="modal-title" id="modal-alumno-nombre">Lucas Martínez</h2>
+					<p class="modal-subtitle" id="modal-alumno-carrera">Tecnicatura Superior en Desarrollo de Software</p>
+				</div>
+				<button class="modal-close-btn" id="btn-close-alumno" aria-label="Cerrar ventana">
+					<i class="fa-solid fa-xmark"></i>
+				</button>
+			</div>
+
+			<div class="modal-body">
+				<!-- Tarjetas de Resumen Académico (#149) -->
+				<div class="modal-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+					<div style="background: var(--bg-surface-2); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); text-align: center;">
+						<div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Promedio General</div>
+						<div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-primary);" id="resumen-promedio">8.50</div>
+					</div>
+					<div style="background: var(--bg-surface-2); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); text-align: center;">
+						<div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Materias Inscriptas</div>
+						<div style="font-size: 1.5rem; font-weight: 700;" id="resumen-materias">3</div>
+					</div>
+					<div style="background: var(--bg-surface-2); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); text-align: center;">
+						<div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Evaluaciones Rendidas</div>
+						<div style="font-size: 1.5rem; font-weight: 700; color: #10b981;" id="resumen-eval-rendidas">4</div>
+					</div>
+					<div style="background: var(--bg-surface-2); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border-color); text-align: center;">
+						<div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Tasa de Aprobación</div>
+						<div style="font-size: 1.5rem; font-weight: 700; color: #38bdf8;" id="resumen-tasa-aprobacion">100%</div>
+					</div>
+				</div>
+
+				<!-- Navegación de Pestañas del Alumno -->
+				<div style="display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem;">
+					<button type="button" class="tab-btn active" id="tab-alumno-calificaciones" style="background: none; border: none; padding: 0.5rem 1rem; color: var(--accent-primary); border-bottom: 2px solid var(--accent-primary); font-weight: 600; cursor: pointer;">
+						<i class="fa-solid fa-award"></i> Calificaciones (#145)
+					</button>
+					<button type="button" class="tab-btn" id="tab-alumno-evaluaciones" style="background: none; border: none; padding: 0.5rem 1rem; color: var(--text-muted); border-bottom: 2px solid transparent; font-weight: 600; cursor: pointer;">
+						<i class="fa-solid fa-calendar-check"></i> Evaluaciones (#146)
+					</button>
+					<button type="button" class="tab-btn" id="tab-alumno-cursos" style="background: none; border: none; padding: 0.5rem 1rem; color: var(--text-muted); border-bottom: 2px solid transparent; font-weight: 600; cursor: pointer;">
+						<i class="fa-solid fa-book-open"></i> Materias Inscriptas
+					</button>
+				</div>
+
+				<!-- Contenido Tab 1: Calificaciones (#145) -->
+				<div id="tab-content-calificaciones" style="display: block;">
+					<div id="alumno-calificaciones-container" style="max-height: 220px; overflow-y: auto;">
+						<!-- Tabla dinámica de calificaciones -->
+					</div>
+				</div>
+
+				<!-- Contenido Tab 2: Evaluaciones (#146) -->
+				<div id="tab-content-evaluaciones" style="display: none;">
+					<div id="alumno-evaluaciones-container" style="max-height: 220px; overflow-y: auto;">
+						<!-- Tabla dinámica de evaluaciones -->
+					</div>
+				</div>
+
+				<!-- Contenido Tab 3: Cursos Inscriptos -->
+				<div id="tab-content-cursos" style="display: none;">
+					<div id="alumno-cursos-container" style="max-height: 220px; overflow-y: auto;">
+						<!-- Tabla dinámica de cursos del alumno -->
+					</div>
+				</div>
+			</div>
+
+			<div class="modal-footer">
+				<button class="btn btn-secondary" id="btn-cerrar-alumno-modal">Cerrar</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Toast Notifications Container -->
+	<div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+	<!-- Main Script -->
+	<script src="js/app.js"></script>
+</body>
+</html>
+

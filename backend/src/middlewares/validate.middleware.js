@@ -1,9 +1,18 @@
-import { validatePassword, validateEmail, validateTextField } from '../utils/validators.js';
+import {
+	validatePassword,
+	validateEmail,
+	validateTextField,
+	validateCursoInput,
+	validateAsociacionEscuelaInput,
+	validateInscripcionAlumnoInput
+} from '../utils/validators.js';
+
 
 /**
  * Middleware para validar los datos de registro de un usuario.
  * Aplica RegEx antes de ejecutar cualquier hash o inserción en la BD.
  */
+
 export const validateRegister = (req, res, next) => {
 	const { nombre, apellido, email, password } = req.body || {};
 
@@ -136,3 +145,61 @@ export const validatePublicacion = (req, res, next) => {
 
 	next();
 };
+
+/**
+ * Middleware para validar la creación o actualización de un Curso (HU-05 #87, #93).
+ * Sanitiza el body y descarta docente_id si el usuario no es administrador.
+ */
+export const validateCurso = (req, res, next) => {
+	// Delegación de identidad: Si el usuario no es admin (rol_id !== 2), descartar docente_id del body
+	if (req.body && req.usuario && req.usuario.rol_id !== 2 && req.body.docente_id !== undefined) {
+		delete req.body.docente_id;
+	}
+
+	const validation = validateCursoInput(req.body);
+	if (!validation.isValid) {
+		return res.status(400).json({
+			error: 'Validación fallida',
+			message: validation.message,
+			field: validation.field
+		});
+	}
+
+	next();
+};
+
+/**
+ * Middleware para validar la asociación de un curso a una escuela (HU-44 #108, #109).
+ */
+export const validateAsociacionEscuela = (req, res, next) => {
+	const validation = validateAsociacionEscuelaInput(req.body);
+	if (!validation.isValid) {
+		return res.status(400).json({
+			error: 'Validación fallida',
+			message: validation.message,
+			field: validation.field
+		});
+	}
+
+	next();
+};
+
+/**
+ * Middleware para validar los datos de inscripción de un alumno en un curso (HU-45 #115).
+ */
+export const validateInscripcionAlumno = (req, res, next) => {
+	const validation = validateInscripcionAlumnoInput(req.body);
+	if (!validation.isValid) {
+		return res.status(400).json({
+			error: 'Validación fallida',
+			message: validation.message,
+			field: validation.field
+		});
+	}
+
+	next();
+};
+
+
+
+

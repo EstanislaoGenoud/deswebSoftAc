@@ -123,3 +123,173 @@ export const validateTextField = (text, fieldName = 'campo', minLength = 1, maxL
 
 	return { isValid: true };
 };
+
+// RegEx de código de curso (letras, números, guiones medios y bajos, de 2 a 50 caracteres)
+export const CODIGO_CURSO_REGEX = /^[a-zA-Z0-9_-]{2,50}$/;
+
+/**
+ * Valida los datos requeridos para la creación o actualización de un Curso (HU-05 #87, #93).
+ * Datos requeridos:
+ * - codigo: string no vacío, 2-50 caracteres, formato alfanumérico con guiones.
+ * - nombre: string no vacío, 3-150 caracteres.
+ * Datos opcionales con límites:
+ * - descripcion: string hasta 2000 caracteres.
+ * - comision: string hasta 50 caracteres.
+ * - periodo: string hasta 50 caracteres.
+ * - aula: string hasta 50 caracteres.
+ * - horario: string hasta 100 caracteres.
+ * - cupo_maximo: entero entre 1 y 500.
+ * @param {object} curso 
+ * @returns {{ isValid: boolean, message?: string, field?: string }}
+ */
+export const validateCursoInput = (curso = {}) => {
+	if (!curso || typeof curso !== 'object') {
+		return { isValid: false, message: 'El cuerpo de la petición no contiene datos válidos' };
+	}
+
+	const { codigo, nombre, descripcion, escuela_id, comision, periodo, aula, horario, cupo_maximo } = curso;
+
+	// Validación de Código Requerido
+	const codigoVal = validateTextField(codigo, 'código', 2, 50);
+	if (!codigoVal.isValid) {
+		return { isValid: false, message: codigoVal.message, field: 'codigo' };
+	}
+
+	if (!CODIGO_CURSO_REGEX.test(codigo.trim())) {
+		return {
+			isValid: false,
+			message: 'El código del curso solo puede contener letras, números, guiones y guiones bajos (sin espacios)',
+			field: 'codigo'
+		};
+	}
+
+	// Validación de Nombre Requerido
+	const nombreVal = validateTextField(nombre, 'nombre del curso', 3, 150);
+	if (!nombreVal.isValid) {
+		return { isValid: false, message: nombreVal.message, field: 'nombre' };
+	}
+
+	// Validación de Escuela Asociada (#109)
+	if (escuela_id !== undefined && escuela_id !== null && escuela_id !== '') {
+		const escuelaNum = Number(escuela_id);
+		if (!Number.isInteger(escuelaNum) || escuelaNum <= 0) {
+			return {
+				isValid: false,
+				message: 'El identificador de escuela debe ser un número entero positivo',
+				field: 'escuela_id'
+			};
+		}
+	}
+
+	// Validaciones de campos opcionales
+	if (descripcion && typeof descripcion === 'string' && descripcion.trim().length > 2000) {
+		return {
+			isValid: false,
+			message: 'La descripción no puede superar los 2000 caracteres',
+			field: 'descripcion'
+		};
+	}
+
+	if (comision && typeof comision === 'string' && comision.trim().length > 50) {
+		return {
+			isValid: false,
+			message: 'El nombre de la comisión no puede superar los 50 caracteres',
+			field: 'comision'
+		};
+	}
+
+	if (periodo && typeof periodo === 'string' && periodo.trim().length > 50) {
+		return {
+			isValid: false,
+			message: 'El período académico no puede superar los 50 caracteres',
+			field: 'periodo'
+		};
+	}
+
+	if (aula && typeof aula === 'string' && aula.trim().length > 50) {
+		return {
+			isValid: false,
+			message: 'El campo de aula no puede superar los 50 caracteres',
+			field: 'aula'
+		};
+	}
+
+	if (horario && typeof horario === 'string' && horario.trim().length > 100) {
+		return {
+			isValid: false,
+			message: 'El horario no puede superar los 100 caracteres',
+			field: 'horario'
+		};
+	}
+
+	if (cupo_maximo !== undefined && cupo_maximo !== null && cupo_maximo !== '') {
+		const cupoNum = Number(cupo_maximo);
+		if (!Number.isInteger(cupoNum) || cupoNum <= 0 || cupoNum > 500) {
+			return {
+				isValid: false,
+				message: 'El cupo máximo debe ser un número entero entre 1 y 500',
+				field: 'cupo_maximo'
+			};
+		}
+	}
+
+	return { isValid: true };
+};
+
+/**
+ * Valida los datos requeridos para asociar un curso a una escuela (HU-44 #108, #109).
+ * @param {object} data 
+ * @returns {{ isValid: boolean, message?: string, field?: string }}
+ */
+export const validateAsociacionEscuelaInput = (data) => {
+	const { escuela_id } = data || {};
+	if (escuela_id === undefined || escuela_id === null || escuela_id === '') {
+		return {
+			isValid: false,
+			message: 'El campo escuela_id es requerido para realizar la asociación',
+			field: 'escuela_id'
+		};
+	}
+
+	const escuelaNum = Number(escuela_id);
+	if (!Number.isInteger(escuelaNum) || escuelaNum <= 0) {
+		return {
+			isValid: false,
+			message: 'El identificador de escuela debe ser un número entero positivo',
+			field: 'escuela_id'
+		};
+	}
+
+	return { isValid: true };
+};
+
+/**
+ * Valida los datos requeridos para la inscripción de un alumno en un curso (HU-45 #115).
+ * @param {object} data
+ * @returns {{ isValid: boolean, message?: string, field?: string }}
+ */
+export const validateInscripcionAlumnoInput = (data) => {
+	const { alumno_id } = data || {};
+	if (alumno_id === undefined || alumno_id === null || alumno_id === '') {
+		return {
+			isValid: false,
+			message: 'El campo alumno_id es requerido para realizar la inscripción',
+			field: 'alumno_id'
+		};
+	}
+
+	const alumnoNum = Number(alumno_id);
+	if (!Number.isInteger(alumnoNum) || alumnoNum <= 0) {
+		return {
+			isValid: false,
+			message: 'El identificador de alumno debe ser un número entero positivo',
+			field: 'alumno_id'
+		};
+	}
+
+	return { isValid: true };
+};
+
+
+
+

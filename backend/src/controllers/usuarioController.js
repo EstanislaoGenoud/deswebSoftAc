@@ -9,6 +9,8 @@ import {
 	deleteUsuario
 } from '../models/usuarioModel.js';
 import { countPublicacionesByAutor } from '../models/publicacionModel.js';
+import { countCursosByDocente } from '../models/cursoModel.js';
+
 
 const getAllUsuariosController = async (req, res) => {
 	try {
@@ -227,13 +229,25 @@ const deleteUsuarioController = async (req, res) => {
 		}
 
 		// Protección de integridad referencial a nivel de aplicación
-		const numPublicaciones = await countPublicacionesByAutor(id);
+		const [numPublicaciones, numCursos] = await Promise.all([
+			countPublicacionesByAutor(id),
+			countCursosByDocente(id)
+		]);
+
 		if (numPublicaciones > 0) {
 			return res.status(409).json({
 				error: 'Operación denegada',
 				message: `No se puede eliminar el usuario porque posee ${numPublicaciones} publicación(es) asociada(s). Integridad referencial protegida.`
 			});
 		}
+
+		if (numCursos > 0) {
+			return res.status(409).json({
+				error: 'Operación denegada',
+				message: `No se puede eliminar el usuario porque tiene ${numCursos} curso(s) asignado(s) como docente. Integridad referencial protegida.`
+			});
+		}
+
 
 		await deleteUsuario(id);
 		res.status(200).json({

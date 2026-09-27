@@ -449,13 +449,872 @@
 								"1"
 							]
 						},
-						"description": "Protege la integridad referencial. Si el usuario posee publicaciones, rechaza la eliminación con 409 Conflict."
+						"description": "Protege la integridad referencial. Si el usuario posee publicaciones o cursos, rechaza la eliminación con 409 Conflict."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "07 - Cursos (HU-04 Visualizar Cursos)",
+			"item": [
+				{
+					"name": "7.1 Listar Todos los Cursos (Paginado & Búsqueda)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos?page=1&limit=10&search=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								}
+							]
+						},
+						"description": "Lista el catálogo de cursos del sistema con soporte de paginación y búsqueda dinámica."
+					},
+					"response": []
+				},
+				{
+					"name": "7.2 Obtener Cursos del Docente Autenticado (HU-04 #79)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/mis-cursos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"mis-cursos"
+							]
+						},
+						"description": "HU-04 #79: Extrae de forma segura el ID del docente autenticado desde el JWT para devolver exclusivamente sus cursos asignados."
+					},
+					"response": []
+				},
+				{
+					"name": "7.3 Obtener Cursos por ID de Docente",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/docente/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"docente",
+								"1"
+							]
+						},
+						"description": "Obtiene los cursos asociados a un docente específico por su ID."
+					},
+					"response": []
+				},
+				{
+					"name": "7.4 Obtener Detalle de Curso por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"1"
+							]
+						},
+						"description": "Obtiene la ficha técnica completa de un curso y su docente titular."
+					},
+					"response": []
+				},
+				{
+					"name": "7.5 Crear Nuevo Curso (#78)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"codigo\": \"RED-305\",\n  \"nombre\": \"Redes y Comunicaciones II\",\n  \"descripcion\": \"Protocolos de enrutamiento, seguridad perimetral y sockets.\",\n  \"comision\": \"Comisión A\",\n  \"periodo\": \"2026 - 2° Cuatrimestre\",\n  \"aula\": \"Lab Redes\",\n  \"horario\": \"Miércoles 18:00 - 22:00\",\n  \"cupo_maximo\": 30\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos"
+							]
+						},
+						"description": "Crea un nuevo curso asignando el docente titular a partir del JWT."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "08 - Cursos: HU-06 Consultar Información del Curso",
+			"item": [
+				{
+					"name": "8.1 Detalle Completo del Curso (#97, #99, #101)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/1/detalle",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"1",
+								"detalle"
+							]
+						},
+						"description": "HU-06 #97: Devuelve la ficha completa con escuela asociada (#99), cantidad de alumnos y cálculo de cupos (#101) y permisos (#104)."
+					},
+					"response": []
+				},
+				{
+					"name": "8.2 Escuela Asociada al Curso (#99)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/1/escuela",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"1",
+								"escuela"
+							]
+						},
+						"description": "HU-06 #99: Retorna los datos institucionales de la escuela a la cual pertenece la asignatura."
+					},
+					"response": []
+				},
+				{
+					"name": "8.3 Nómina de Alumnos - Docente Titular / Admin (200 OK) (#101, #104)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/1/alumnos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"1",
+								"alumnos"
+							]
+						},
+						"description": "HU-06 #101 & #104: Consulta la lista de alumnos inscriptos. Permitido cuando el token corresponde al docente titular o administrador."
+					},
+					"response": []
+				},
+				{
+					"name": "8.4 Nómina de Alumnos - Sin Autenticación (Bloqueo 401 Unauthorized)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/1/alumnos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"1",
+								"alumnos"
+							]
+						},
+						"description": "HU-06 #104: Rechazo 401 al intentar consultar la lista de alumnos sin token JWT."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "09 - Escuelas y Asociación de Cursos (HU-44)",
+			"item": [
+				{
+					"name": "9.1 Listar Todas las Escuelas (#106)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/escuelas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"escuelas"
+							]
+						},
+						"description": "HU-44 #106: Obtiene el catálogo de escuelas institucionales con la cantidad total de cursos."
+					},
+					"response": []
+				},
+				{
+					"name": "9.2 Cursos Pertenecientes a una Escuela (#106)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/escuelas/1/cursos?page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"escuelas",
+								"1",
+								"cursos"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "HU-44 #106: Lista los cursos que pertenecen a la escuela indicada."
+					},
+					"response": []
+				},
+				{
+					"name": "9.3 Asociar Curso a una Escuela (#108)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"escuela_id\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/1/escuela",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"1",
+								"escuela"
+							]
+						},
+						"description": "HU-44 #108: Asocia o reasigna el curso a la escuela especificada en el cuerpo."
+					},
+					"response": []
+				},
+				{
+					"name": "9.4 Asociar a Escuela Inexistente (Bloqueo 404) (#109)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"escuela_id\": 999\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/1/escuela",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"1",
+								"escuela"
+							]
+						},
+						"description": "HU-44 #109: Rechazo 404 Not Found cuando la escuela especificada no existe en la base de datos."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "10 - Cursos: HU-45 Registrar Cantidad de Alumnos (#112)",
+			"item": [
+				{
+					"name": "10.1 Consultar Capacidad y Cantidad de Alumnos (HU-45 #113, #114)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/1/capacidad",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"1",
+								"capacidad"
+							]
+						},
+						"description": "HU-45 #113 & #114: Consulta las estadísticas de capacidad, ocupación y cantidad de alumnos inscriptos en tiempo real."
+					},
+					"response": []
+				},
+				{
+					"name": "10.2 Inscribir Alumno en Curso (HU-45 #115)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"alumno_id\": 4,\n    \"estado\": \"inscripto\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/1/alumnos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"1",
+								"alumnos"
+							]
+						},
+						"description": "HU-45 #115: Inscribe un estudiante en el curso. Valida cupo disponible (409 si está lleno), no duplicidad (409) y permisos (403). Retorna la capacidad actualizada automáticamente."
+					},
+					"response": []
+				},
+				{
+					"name": "10.3 Desinscribir Alumno de Curso (HU-45 #115)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cursos/1/alumnos/4",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cursos",
+								"1",
+								"alumnos",
+								"4"
+							]
+						},
+						"description": "HU-45 #115: Elimina la inscripción de un estudiante. Actualiza y retorna la capacidad del curso en tiempo real."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "11 - Alumnos (HU-07 Listado, HU-08 Búsqueda, HU-09 Perfil y HU-10 Historial)",
+			"item": [
+				{
+					"name": "11.1 Listar Todos los Alumnos (HU-07 #121, #122, #127)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos?page=1&limit=10&search=&curso_id=&estado=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "curso_id",
+									"value": ""
+								},
+								{
+									"key": "estado",
+									"value": ""
+								}
+							]
+						},
+						"description": "HU-07 #121, #122, #127: Lista general de alumnos con paginación, filtros, búsqueda dinámica y enlace al perfil académico."
+					},
+					"response": []
+				},
+				{
+					"name": "11.2 Búsqueda Avanzada y Filtrado Multidimensional (HU-08 #131, #136, #137)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos/buscar?q=Lucas&curso_id=1&desempeno=Excelente&sortBy=apellido&sortOrder=ASC&page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos",
+								"buscar"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "Lucas"
+								},
+								{
+									"key": "curso_id",
+									"value": "1"
+								},
+								{
+									"key": "desempeno",
+									"value": "Excelente"
+								},
+								{
+									"key": "sortBy",
+									"value": "apellido"
+								},
+								{
+									"key": "sortOrder",
+									"value": "ASC"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "HU-08 #131, #136, #137: Búsqueda avanzada y filtrado de alumnos por término unificado, legajo, email, cursos, promedios y ordenamiento dinámico."
+					},
+					"response": []
+				},
+				{
+					"name": "11.3 Mis Alumnos - Docente Autenticado (HU-07 #120, #121, #127)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos/mis-alumnos?page=1&limit=10&search=&curso_id=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos",
+								"mis-alumnos"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "curso_id",
+									"value": ""
+								}
+							]
+						},
+						"description": "HU-07 #120, #121, #127: Obtiene los alumnos inscriptos en las materias del docente autenticado vía JWT."
+					},
+					"response": []
+				},
+				{
+					"name": "11.4 Alumnos de un Curso Específico (HU-07 #120, #121)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos/curso/1?page=1&limit=10&search=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos",
+								"curso",
+								"1"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								}
+							]
+						},
+						"description": "HU-07 #120, #121: Lista los alumnos inscriptos en un curso particular verificando permisos."
+					},
+					"response": []
+				},
+				{
+					"name": "11.5 Historial Académico Completo (HU-10 #153, #154)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos/4/historial-academico?periodo=&estado=&curso_id=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos",
+								"4",
+								"historial-academico"
+							],
+							"query": [
+								{
+									"key": "periodo",
+									"value": ""
+								},
+								{
+									"key": "estado",
+									"value": ""
+								},
+								{
+									"key": "curso_id",
+									"value": ""
+								}
+							]
+						},
+						"description": "HU-10 #153, #154: Consulta el historial académico completo de un alumno. Relaciona cursos anteriores y actuales, condición final, calificaciones agrupadas por cuatrimestre y métricas de avance de carrera."
+					},
+					"response": []
+				},
+				{
+					"name": "11.6 Mi Historial Académico (HU-10 #154)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos/mi-historial",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos",
+								"mi-historial"
+							]
+						},
+						"description": "HU-10 #154: Obtiene el historial académico propio del alumno autenticado vía JWT."
+					},
+					"response": []
+				},
+				{
+					"name": "11.7 Consultar Perfil Completo del Alumno (#140, #149)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos/4/perfil",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos",
+								"4",
+								"perfil"
+							]
+						},
+						"description": "HU-09 #140 & #149: Obtiene el perfil completo del alumno con legajo, carrera, cursos y resumen académico."
+					},
+					"response": []
+				},
+				{
+					"name": "11.8 Consultar Calificaciones del Alumno (#145)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos/4/calificaciones",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos",
+								"4",
+								"calificaciones"
+							]
+						},
+						"description": "HU-09 #145: Consulta el historial de calificaciones registradas, notas, estado (Aprobado/Desaprobado) y promedio."
+					},
+					"response": []
+				},
+				{
+					"name": "11.9 Consultar Evaluaciones del Alumno (#146)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos/4/evaluaciones",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos",
+								"4",
+								"evaluaciones"
+							]
+						},
+						"description": "HU-09 #146: Obtiene las evaluaciones programadas y rendidas en los cursos en los que está inscripto."
+					},
+					"response": []
+				},
+				{
+					"name": "11.10 Consultar Resumen Académico (#149)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos/4/resumen-academico",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos",
+								"4",
+								"resumen-academico"
+							]
+						},
+						"description": "HU-09 #149: Retorna métricas de rendimiento, promedio general, tasa de aprobación y nivel de desempeño."
+					},
+					"response": []
+				},
+				{
+					"name": "11.11 Acceso a Alumno por Docente No Titular (Bloqueo 403 #150)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/alumnos/6/perfil",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"alumnos",
+								"6",
+								"perfil"
+							]
+						},
+						"description": "HU-09 #150: Demuestra la regla de control de acceso. Si el docente no imparte ningún curso al alumno, recibe 403 Forbidden."
 					},
 					"response": []
 				}
 			]
 		}
 	],
+
+
+
 	"variable": [
 		{
 			"key": "baseUrl",
@@ -469,3 +1328,4 @@
 		}
 	]
 }
+

@@ -4,8 +4,10 @@ import {
 	validateLoginInput,
 	validatePasswordUpdate,
 	validateEmailUpdate,
-	validatePublicacion
+	validatePublicacion,
+	validateCurso
 } from '../src/middlewares/validate.middleware.js';
+
 
 describe('Unit Testing con Mocks en Express: Middlewares de Validación RegEx', () => {
 	let req;
@@ -238,4 +240,123 @@ describe('Unit Testing con Mocks en Express: Middlewares de Validación RegEx', 
 			expect(next).not.toHaveBeenCalled();
 		});
 	});
+
+	describe('Middleware validateCurso', () => {
+		test('Debe rechazar con 400 si el código es inválido o muy corto', () => {
+			req.body = {
+				codigo: 'A',
+				nombre: 'Desarrollo Web'
+			};
+
+			validateCurso(req, res, next);
+
+			expect(res.status).toHaveBeenCalledWith(400);
+			expect(res.json).toHaveBeenCalledWith(
+				expect.objectContaining({
+					error: 'Validación fallida',
+					field: 'codigo'
+				})
+			);
+			expect(next).not.toHaveBeenCalled();
+		});
+
+		test('Debe rechazar con 400 si el nombre es demasiado corto', () => {
+			req.body = {
+				codigo: 'DSW-301',
+				nombre: 'De'
+			};
+
+			validateCurso(req, res, next);
+
+			expect(res.status).toHaveBeenCalledWith(400);
+			expect(res.json).toHaveBeenCalledWith(
+				expect.objectContaining({
+					error: 'Validación fallida',
+					field: 'nombre'
+				})
+			);
+			expect(next).not.toHaveBeenCalled();
+		});
+
+		test('Debe rechazar con 400 si el cupo máximo no es un número válido', () => {
+			req.body = {
+				codigo: 'DSW-301',
+				nombre: 'Desarrollo de Sistemas Web',
+				cupo_maximo: -5
+			};
+
+			validateCurso(req, res, next);
+
+			expect(res.status).toHaveBeenCalledWith(400);
+			expect(res.json).toHaveBeenCalledWith(
+				expect.objectContaining({
+					error: 'Validación fallida',
+					field: 'cupo_maximo'
+				})
+			);
+			expect(next).not.toHaveBeenCalled();
+		});
+
+		test('Debe rechazar con 400 si el código tiene espacios o caracteres especiales inválidos', () => {
+			req.body = {
+				codigo: 'DSW 301 !',
+				nombre: 'Desarrollo Web'
+			};
+
+			validateCurso(req, res, next);
+
+			expect(res.status).toHaveBeenCalledWith(400);
+			expect(res.json).toHaveBeenCalledWith(
+				expect.objectContaining({
+					error: 'Validación fallida',
+					field: 'codigo'
+				})
+			);
+			expect(next).not.toHaveBeenCalled();
+		});
+
+		test('Debe descartar docente_id del body si el usuario no es admin (Delegación de Identidad #92)', () => {
+			req.usuario = { id: 5, rol_id: 1 }; // Docente regular
+			req.body = {
+				codigo: 'DSW-301',
+				nombre: 'Desarrollo de Sistemas Web',
+				docente_id: 99 // Intento de inyección
+			};
+
+			validateCurso(req, res, next);
+
+			expect(req.body.docente_id).toBeUndefined();
+			expect(next).toHaveBeenCalledTimes(1);
+		});
+
+		test('Debe permitir docente_id en el body si el usuario es administrador (rol_id: 2)', () => {
+			req.usuario = { id: 1, rol_id: 2 }; // Administrador
+			req.body = {
+				codigo: 'DSW-301',
+				nombre: 'Desarrollo de Sistemas Web',
+				docente_id: 3 // Asignación permitida a otro docente
+			};
+
+			validateCurso(req, res, next);
+
+			expect(req.body.docente_id).toBe(3);
+			expect(next).toHaveBeenCalledTimes(1);
+		});
+
+		test('Debe llamar a next() cuando los datos del curso son válidos', () => {
+			req.body = {
+				codigo: 'DSW-301',
+				nombre: 'Desarrollo de Sistemas Web',
+				descripcion: 'Materia de tercer año de desarrollo de software',
+				cupo_maximo: 35
+			};
+
+			validateCurso(req, res, next);
+
+			expect(next).toHaveBeenCalledTimes(1);
+			expect(res.status).not.toHaveBeenCalled();
+		});
+	});
 });
+
+

@@ -3,6 +3,9 @@ import cors from 'cors';
 import 'dotenv/config';
 import usuarioRoutes from './src/routes/usuarioRoutes.js';
 import publicacionRoutes from './src/routes/publicacionRoutes.js';
+import cursoRoutes from './src/routes/cursoRoutes.js';
+import escuelaRoutes from './src/routes/escuelaRoutes.js';
+import alumnoRoutes from './src/routes/alumnoRoutes.js';
 import { verifyToken } from './src/middlewares/authToken.middleware.js';
 import { getPerfilController } from './src/controllers/usuarioController.js';
 
@@ -23,8 +26,12 @@ app.get('/', (req, res) => {
 		endpoints: {
 			auth: 'POST /api/v1/usuarios/login',
 			perfil: 'GET /perfil (o GET /api/v1/usuarios/perfil)',
-			usuarios: 'GET, POST /api/v1/usuarios',
-			publicaciones: 'GET, POST, PUT, DELETE /api/v1/publicaciones'
+			usuarios: 'GET, POST, PUT, DELETE /api/v1/usuarios',
+			publicaciones: 'GET, POST, PUT, DELETE /api/v1/publicaciones',
+			cursos: 'GET, POST, PUT, DELETE /api/v1/cursos',
+			mis_cursos: 'GET /api/v1/cursos/mis-cursos (Docente autenticado)',
+			escuelas: 'GET /api/v1/escuelas',
+			alumnos: 'GET /api/v1/alumnos/:id/perfil, calificaciones, evaluaciones, resumen-academico'
 		}
 	});
 });
@@ -35,6 +42,12 @@ app.get('/perfil', verifyToken, getPerfilController);
 // Rutas agrupadas de la API v1
 app.use('/api/v1/usuarios', usuarioRoutes);
 app.use('/api/v1/publicaciones', publicacionRoutes);
+app.use('/api/v1/cursos', cursoRoutes);
+app.use('/api/v1/escuelas', escuelaRoutes);
+app.use('/api/v1/alumnos', alumnoRoutes);
+
+
+
 
 // Manejo de rutas inexistentes (404)
 app.use((req, res) => {
